@@ -26,13 +26,13 @@ public:
 		_data = node._data;
 		_next = node._next;
 	}
-	
+
 	Node()
 	{
 		_data = 0;
 		_next = nullptr;
 	}
-	
+
 	~Node() { delete _next; }
 
 	friend ostream &operator<<(ostream &COUT, const Node &node)
@@ -69,39 +69,41 @@ public:
 		return COUT;
 	}
 
-	void operator-=(const int &lokacija)
+	void operator-=(const int &location)
 	{
-		Node *temp = _nodes;
+		Node *current = _nodes;
+		Node *saved = nullptr;
 
-		Node *spasi = nullptr;
-		if (lokacija == 0)
+		if (location == 0)
 		{
-			Node *n = _nodes->getNext();
-			delete temp;
-			_nodes = n;
+			_nodes = _nodes->getNext();
+			current->setNext(nullptr);
+			delete current;
 			return;
 		}
-		else if (lokacija < 0)
+		else if (location < 0)
 			return;
 
 		int brojac = 0;
-		while (temp != nullptr)
+		while (current != nullptr)
 		{
-			if (++brojac == lokacija)
+			if (++brojac == location)
 			{
-				if (temp->getNext() != nullptr)
+				if (current->getNext() != nullptr)
 				{
-					spasi = temp->getNext();
-					Node *poslje = temp->getNext()->getNext();
-					temp->setNext(poslje);
+					saved = current->getNext();
+					
+					Node *after = saved->getNext();
+					saved->setNext(nullptr);
+					current->setNext(after);
 
-					spasi->setNext(nullptr);
-					delete spasi->getNext();
+					delete saved;
+					saved = nullptr;
 					return;
 				}
 				return;
 			}
-			temp = temp->getNext();
+			current = current->getNext();
 		}
 	}
 
@@ -123,16 +125,16 @@ public:
 
 void main()
 {
-	LinkedList lista;
-	lista += 4;
-	lista += 3;
-	lista += 2;
-	lista += 1;
-	lista += 0;
+	LinkedList list;
+	list += 4;
+	list += 3;
+	list += 2;
+	list += 1;
+	list += 0;
 
-	cout << lista << crt;
-	lista -= 2;
-	cout << lista << crt;
+	cout << list << crt;
+	list -= 2;
+	cout << list << crt;
 
 	system("PAUSE>0");
 }
