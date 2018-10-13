@@ -184,6 +184,8 @@ public:
 		_datum = komentar._datum;
 		_satnica = komentar._satnica;
 		_popularnost = komentar._popularnost;
+		if(_autor != nullptr)
+			delete _autor;
 		_autor = new Korisnik(komentar._autor->getIme(), komentar._autor->getKorisnickoIme(), komentar._autor->getLozinka(), komentar._autor->getTipKorisnika());
 	}
 
@@ -202,7 +204,7 @@ public:
 	}
 
 	//Potrebne konstruktor i destruktor funkcije
-	Komentar() { _tekst = nullptr; _autor = nullptr; }
+	Komentar() { _popularnost = 0; _tekst = nullptr; _autor = nullptr; }
 
 	Komentar(const char* tekst, const Datum &datum, const Vrijeme &satnica, const Korisnik &autor)
 	{

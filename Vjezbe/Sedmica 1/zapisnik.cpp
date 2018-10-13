@@ -234,6 +234,8 @@ public:
 	}
 	/*U prosjek raèunati i poništene rezultate (stavke)*/
 	float GetProsjecnaOcjena() { 
+		if(_brojStavki == 0)
+			return 0;
 		int suma = 0;
 		for (int i = 0; i < _brojStavki; i++)
 			suma += _stavke[i].getOcjena();
