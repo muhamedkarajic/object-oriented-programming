@@ -196,7 +196,12 @@ public:
 	Aktivnost *getAktivnosti() const { return _aktivnosti; }
 	int getBrojAktivnosti() const { return _brojAktivnosti; }
 
-
+	~Projekat()
+	{
+		delete[] _naziv;
+		delete[] _oblast;
+		delete[] _aktivnosti;
+	}
 
 	//Funkciju koja pronalazi 3 uposlenika koja su angazovana na najvecem broju nezavrsenih aktivnosti.
 	Uposlenik **Naj3Uposlenika() // -> RADI
