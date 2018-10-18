@@ -431,9 +431,9 @@ Uposlenik *NajUposlenikSaTrajanjem(const Projekat& projekat) // -> RADI
 int main()
 {
 	//Testirati sve dostupne funkcionalnosti
-	Uposlenik uposlenik0("Muhamed", "Karajic", "Programer");
-	Uposlenik uposlenik1("Nedim", "Kurtovic", "Developer");
-	Uposlenik uposlenik2("Aldin", "Talic", "Coder");
+	Uposlenik uposlenik0("Keanu", "Reeves", "Programer");
+	Uposlenik uposlenik1("Carrie‑Anne", "Moss", "Developer");
+	Uposlenik uposlenik2("Laurence", "Fishburne", "Hacker");
 	Uposlenik uposlenik3("Treba", "Ukloniti", "Bot");
 
 	Aktivnost aktivnost("Pisanje programa", 3);
