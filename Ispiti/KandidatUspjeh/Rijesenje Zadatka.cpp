@@ -258,7 +258,7 @@ public:
 	Uspjeh(eRazred razred) :_razred(razred), _predmeti(nullptr) {}
 
 	~Uspjeh() {
-		delete[] _predmeti; _predmeti = nullptr;
+		delete _predmeti; _predmeti = nullptr;
 	}
 
 	Kolekcija<Predmet*, DatumVrijeme> * GetPredmeti() { return _predmeti; }
