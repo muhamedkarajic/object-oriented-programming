@@ -76,10 +76,12 @@ public:
 	u slucaju da u nizu ne postoji trazeni broj elemenata funkcija treba da vrati sve element od lokacije OD pa do posljednje dostupnog elementa */
 	const string operator()(const int &begin, const int &end)
 	{
-		string COUT = "";
+		FITArray temp;
+
 		for (int i = begin; i < end && i < _trenutno; i++)
-			COUT +=to_string(_niz[i]) + ", ";
-		return COUT;
+			temp += _niz[i];
+		return temp;
+
 	}
 
 

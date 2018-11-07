@@ -43,6 +43,8 @@ public:
 	int getSekunde() const { return *_sekunde; }
 	int getMinute() const { return *_minute; }
 
+	int getVrijemeUSekundama() const { return ((*_sati) * 60 + *_minute) * 60 + *_sekunde; }
+
 	void operator=(const Vrijeme& vrijeme) {
 		*_sati = *vrijeme._sati;
 		*_minute = *vrijeme._minute;
@@ -327,22 +329,20 @@ public:
 	}
 
 	//Funkciju koja daje prosječno trajanje svih pohranjenih letova.
-	/*Vrijeme ProsjecnoTrajanjeLetova()
+	Vrijeme ProsjecnoTrajanjeLetova()
 	{
-		Vrijeme temp(0,0,0);
-		int sati = 0;
-		int minute = 0;
 		int sekunde = 0;
 		for (int i = 0; i < _brojRegistrovanihLetova; i++)
-		{
-			sati = _letovi[i]->getVrijeme().getSati();
-			minute = _letovi[i]->getVrijeme().getMinute();
-			temp += minute + 60*sati;
+			sekunde += _letovi[i]->getVrijeme().getVrijemeUSekundama();
+		
+		sekunde /= _brojRegistrovanihLetova;
+		int minute = sekunde / 60;
+		sekunde %= 60;
+		int sati = minute / 60;
+		minute %= 60;
 
-		}
-
-
-	}*/
+		return Vrijeme(sati,minute,sekunde);
+	}
 
 	/*Preklopiti operator "<<" koji ispisuje kompletan spisak svih letova, sortiran po očekivanim vremenima polazaka.
 	Za potrebe poređenja vremena polaska letova preklopiti odgovarajuće operatore u klasi Vrijeme. */
@@ -366,19 +366,20 @@ int main()
 	let += 110;
 	cout << let << endl;
 
-
 	RasporedLetova letovi(5);
 
 	letovi += zagreb;
 	letovi += let;
 	cout << letovi << endl;
+
+	try {
+		cout << "Prosjecno trajanje letova: " << letovi[1].getVrijeme() << " - " << letovi[2].getVrijeme() << " -> " << letovi.ProsjecnoTrajanjeLetova() << endl;
+	}
+	catch (const std::exception& error) { cout << error.what() << endl; }
+
 	letovi -= "JFK 156";
-	//letovi -= "ZGK 932";
 
 	cout << letovi << endl;
-
-	try { cout << "Ispis pomoci operatora[]: " << letovi[1] << endl; }
-	catch (const std::exception& error) { cout << error.what() << endl; }
 
 	system("pause>0");
 	return 0;
