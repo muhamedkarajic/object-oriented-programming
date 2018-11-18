@@ -2,152 +2,50 @@
 using namespace std;
 
 template<class T1, class T2, int max>
-class FITKolekcija {
+class FITKolekcija
+{
 	int* _trenutno;
 	T1 _elementi1[max];
 	T2* _elementi2[max];
 public:
 	//Potrebne konstruktor i destruktor funkcije
-	FITKolekcija() {
-		for (int i = 0; i < max; i++)
-			_elementi2[i] = nullptr;
-		_trenutno = new int(0);
-	}
-	~FITKolekcija() {
-		for (int i = 0; i < *_trenutno; i++) {
-			delete _elementi2[i];
-		}
-		delete _trenutno; _trenutno = nullptr;
-	}
 	//Kreirati konstruktor kopije za kolekciju
-	FITKolekcija(const FITKolekcija & obj) {
-		_trenutno = new  int(*obj._trenutno);
-		for (int i = 0; i < *_trenutno; i++) {
-			_elementi1[i] = obj._elementi1[i];
-			_elementi2[i] = new T2(*obj._elementi2[i]);
-		}
-	}
+	
 	//Preklopiti operator() na nacin da omoguci dodavanje novih elemenata u kolekciju
 	//Pri tome sprijeciti dodavanja duplih elemenata (odnosi se i na T1 i na T2)
-	bool operator()(T1 element1, T2 element2) {
-		if (*_trenutno >= max)
-			return false;
-		for (int i = 0; i < *_trenutno; i++) {
-			if (_elementi1[i] == element1 || _elementi2[i] == &element2)
-				return false;
-		}
-		_elementi1[*_trenutno] = element1;
-		_elementi2[*_trenutno] = new T2(element2);
-		(*_trenutno)++;
-		return true;
-	}
+	
 	//Preklopiti operator[] na nacin da vraca element tipa T1 na osnovu njegove lokacije u nizu
-	T1 & operator[](int lokacija) {
-		return _elementi1[lokacija];
-	}
 
+	
 	//Preklopiti operator-= na nacin da uklanja elemente iz kolekcije na osnovu rednog broja proslijedenog kao parametar
-	bool operator-=(int redniBroj) {
-		if (redniBroj<0 || redniBroj>*_trenutno)
-			return false;
-		for (int i = redniBroj; i < *_trenutno; i++) {
-			_elementi1[i] = _elementi1[i + 1];
-			_elementi2[i] = _elementi2[i + 1];
-		}
-		(*_trenutno)--;
-		return true;
-	}
+
 	//Preklopiti operator za ispis. Implementaciju raditi izvan tijela klase.
-	friend ostream & operator<< <>(ostream & COUT, const FITKolekcija<T1, T2, max> & obj);
-
-	int GetTrenutno()const {
-		return *_trenutno;
-	}
 };
-
-template<class T1, class T2, int max>
-ostream & operator<< <>(ostream & COUT, const FITKolekcija<T1, T2, max> & obj) {
-	for (int i = 0; i < *obj._trenutno; i++) {
-		COUT << obj._elementi1[i] << " - " << *obj._elementi2[i] << endl;
-	}
-	return COUT;
-}
 
 class Anketa
 {
 	char* _pitanje;
 	int _trajanje; //izraženo u danima
-				   //Kolekcija treba da pohrani moguce odgovore na pitanja, sa pripadajucim rednim brojem
+	//Kolekcija treba da pohrani moguce odgovore na pitanja, sa pripadajucim rednim brojem
 	FITKolekcija<char*, int, 8> _odgovori;
 public:
 	//Kreirati potrebne konstruktor i destruktor funkcije
-	Anketa(const char * pitanje, int trajanje) {
-		int size = strlen(pitanje) + 1;
-		_pitanje = new char[size];
-		strcpy_s(_pitanje, size, pitanje);
-		_trajanje = trajanje;
-	}
-	~Anketa() {
-		delete[] _pitanje; _pitanje = nullptr;
-	}
-	Anketa(const Anketa & obj) :_odgovori(obj._odgovori) {
-		int size = strlen(obj._pitanje) + 1;
-		_pitanje = new char[size];
-		strcpy_s(_pitanje, size, obj._pitanje);
-		_trajanje = obj._trajanje;
-	}
+	
 	//Kreirati funkciju DodajOdgovor koja treba da doda novi odgovor za anketu.
 	//Sprijeciti dodavanje istog odgovora više puta.
-	bool DodajOdgovor(char * odgovor, int redniBroj) {
-		for (int i = 0; i < _odgovori.GetTrenutno(); i++) {
-			if (strcmp(odgovor, _odgovori[i]) == 0)
-				return false;
-		}
-		_odgovori(odgovor, redniBroj);
-		return true;
-	}
-	//Kreirati funkciju UkloniOdgovor koja uklanja odgovor na osnovu njegovog rednog broja.
-	bool UkloniOdgovor(int redniBroj) {
-		_odgovori -= redniBroj;
-		return true;
-	}
 
+	//Kreirati funkciju UkloniOdgovor koja uklanja odgovor na osnovu njegovog rednog broja.
+	
+	
 	//Preklopiti operator++ na nacin da povecava trajanje ankete za jedan dan
 	//Pri tome voditi racuna da se implementiraju dvije verzije ovog operatora (objekat++; ++objekat)
-	Anketa & operator++() {
-		_trajanje++;
-		return *this;
-	}
-	Anketa operator++(int) {
-		Anketa temp(*this);
-		_trajanje++;
-		return temp;
-	}
-	//Preklopiti operator za ispis
-	friend ostream & operator<<(ostream & COUT, const Anketa & obj);
-};
 
-ostream & operator<<(ostream & COUT, const Anketa & obj) {
-	COUT << "Pitanje: " << obj._pitanje << endl;
-	COUT << "Trajanje: " << obj._trajanje << endl;
-	COUT << "Odgovori:\n" << obj._odgovori << endl;
-	return COUT;
-}
+	//Preklopiti operator za ispis
+};
 
 int main()
 {
-	Anketa anketa("Glavni grad BiH", 2);
-
-	anketa.DodajOdgovor("Sarajevo", 1);
-	anketa.DodajOdgovor("Zenica", 2);
-	anketa.DodajOdgovor("Mostar", 3);
-	anketa.DodajOdgovor("Tuzla", 4);
-
-	anketa.UkloniOdgovor(2);
-
-
-	cout << ++anketa << endl;
-	cout << anketa++ << endl;
-	cout << anketa << endl;
-	return 0;
+return 0;
 }
+
+
