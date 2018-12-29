@@ -1,6 +1,8 @@
 ﻿#include<iostream>
 using namespace std;
 
+const char* crt = "\n------------------------------------\n";
+
 char * AlocirajNizKaraktera(const char * sadrzaj) {
 	if (sadrzaj == nullptr)
 		return nullptr;
@@ -57,7 +59,7 @@ public:
 
 	int GetTrenutno()const { return _trenutno; }
 
-	T& operator[](int index) const
+	T& operator[](int index)
 	{
 		if (index < 0 || index >= _trenutno)
 			throw NedozvoljenaOperacija(__LINE__, "Indeks nije validan.");//Slucajsno zamjenio prilikom implementacije
@@ -140,7 +142,7 @@ public:
 		cout << "Sifra: " << _sifra << endl;
 		cout << "Naziv: " << _naziv << endl;
 		cout << "Cijena: " << _cijena << endl;
-		cout << "Popust" << _popust << endl;
+		cout << "Popust: " << _popust << endl;
 		cout << "Kolicina: " << _kolicina << endl;
 	}
 
@@ -164,12 +166,12 @@ public:
 	//Potrebne konstruktor i destruktor funkcije
 	Odjeca(Odjeca &odjeca) : Proizvod(odjeca) {//ne može const Odjeca
 		strcpy_s(_kategorija, odjeca._kategorija);
-		int vel = odjeca._velicine.GetTrenutno();
+		int vel = odjeca._boje.GetTrenutno();
+		for (int i = 0; i < vel; i++)
+			_boje.AddElement(AlocirajNizKaraktera(odjeca._boje[i]));
+		vel = odjeca._velicine.GetTrenutno();
 		for (int i = 0; i < vel; i++)
 			_velicine.AddElement(AlocirajNizKaraktera(odjeca._velicine[i]));
-		vel = odjeca._boje.GetTrenutno();
-		for (int i = 0; i < vel; i++)
-			_velicine.AddElement(AlocirajNizKaraktera(odjeca._boje[i]));
 	}
 
 	Odjeca(const char* kategorija,const char* sifra, const char* naziv, double cijena, int kolicina): Proizvod(sifra, naziv, cijena, kolicina) {
@@ -211,7 +213,7 @@ public:
 		Proizvod::Info();
 	}
 
-	friend ostream& operator<<(ostream & COUT, const Odjeca* odjeca) {
+	friend ostream& operator<<(ostream & COUT, Odjeca* odjeca) {
 		COUT << "Kategorija: " << odjeca->_kategorija << endl;
 		COUT << "Sifra: " << odjeca->_sifra << endl;
 		COUT << "Naziv: " << odjeca->_naziv << endl;
@@ -299,13 +301,12 @@ public:
 
 
 	//Preklopiti operator za ispis kataloške ponude
-	friend ostream& operator<<(ostream & cout, const Katalog& katalog) {
+	friend ostream& operator<<(ostream & cout, Katalog& katalog) {
 		cout << katalog._naslov << " - " << katalog._vrijediDo << endl;
 		int vel = katalog._proizvodi.GetTrenutno();
-		Odjeca *temp;
 
-		for (int i = 0; i < vel; i++)
-		{
+		Odjeca *temp;
+		for (int i = 0; i < vel; i++) {
 			temp = dynamic_cast<Odjeca*>(katalog._proizvodi[i]);
 			if (temp != nullptr)
 				cout << temp << endl;
@@ -318,6 +319,7 @@ public:
 
 class Narudzba
 {
+	
 	int _broj;
 	char* _datumIsporuke; //Datum u formatu dd.MM.yyyy
 	Kolekcija<Proizvod*> _naruceniProizvodi;
@@ -376,7 +378,7 @@ int main()
 	majica.DodajBoju("Plava");
 	majica.DodajBoju("Zelena");
 	majica.Info();
-
+	cout << crt;
 
 	//Ispisati ponudu kupcu
 	Katalog katalog("Akcijska ponuda pekare!", "31.12.2018");
