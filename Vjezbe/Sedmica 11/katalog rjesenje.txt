@@ -170,21 +170,23 @@ public:
 	}
 
 	//Implementirati potrebne funkcije za rad sa klasom
-	bool DodajVelicinu(char* velicina) {
+	bool DodajVelicinu(const char* velicina) {
 		int vel = _velicine.GetTrenutno();
 		for (int i = 0; i < vel; i++)
 			if (strcmp(velicina, _velicine[i]) == 0)
 				return false;
 		_velicine.AddElement(AlocirajNizKaraktera(velicina));
+		//cout << "Dodana velicina: " << _velicine[_velicine.GetTrenutno() - 1] << endl;
 		return true;
 	}
 
-	bool DodajBoju(char* boja) {
-		int vel = _velicine.GetTrenutno();
+	bool DodajBoju(const char* boja) {
+		int vel = _boje.GetTrenutno();
 		for (int i = 0; i < vel; i++)
 			if (strcmp(boja, _boje[i]) == 0)
 				return false;
 		_boje.AddElement(AlocirajNizKaraktera(boja));
+		//cout << "Dodana boja: " << _boje[_boje.GetTrenutno() - 1] << endl;
 		return true;
 	}
 
@@ -202,29 +204,26 @@ public:
 		cout << endl;
 		Proizvod::Info();
 	}
-	friend ostream& operator<<(ostream & cout, Odjeca& odjeca) {
-		cout << "Kategorija: " << odjeca._kategorija << endl;
-		cout << "Sifra: " << odjeca._sifra << endl;
-		cout << "Naziv: " << odjeca._naziv << endl;
-		cout << "Cijena: " << odjeca._cijena << "KM" << endl;
-		cout << "Popust: " << odjeca._popust << "%" << endl;
-		cout << "Kolicina: " << odjeca._kolicina << endl;
+	friend ostream& operator<<(ostream & COUT, Odjeca& odjeca) {
+		COUT << "Kategorija: " << odjeca._kategorija << endl;
+		COUT << "Sifra: " << odjeca._sifra << endl;
+		COUT << "Naziv: " << odjeca._naziv << endl;
+		COUT << "Cijena: " << odjeca._cijena << "KM" << endl;
+		COUT << "Popust: " << odjeca._popust << "%" << endl;
+		COUT << "Kolicina: " << odjeca._kolicina << endl;
 
-		cout << "Velicine: ";
-		int vel = odjeca._velicine.GetTrenutno();
+		COUT << "Boje: ";
+		int vel = odjeca._boje.GetTrenutno();
 		for (int i = 0; i < vel; i++)
-			cout << odjeca._velicine[i] << " | ";
-		cout << endl;
-		cout << "Boje: ";
-		vel = odjeca._boje.GetTrenutno();
+			COUT << odjeca._boje[i] << " | ";
+		COUT << endl;
+		COUT << "Velicine: ";
+		vel = odjeca._velicine.GetTrenutno();
 		for (int i = 0; i < vel; i++)
-			cout << odjeca._boje[i] << " | ";
-		cout << endl;
-		return cout;
-
+			COUT << odjeca._velicine[i] << " | ";
+		COUT << endl;
+		return COUT;
 	}
-
-
 };
 ostream& operator<<(ostream& cout, const Proizvod* proizvod) {
 	Proizvod* proizvodTemp = const_cast<Proizvod*>(proizvod);
@@ -372,6 +371,12 @@ int main()
 	Proizvod kifla("004", "Kifla", 0.25, 10);
 	Proizvod pica("005", "Pica", 1.5, 7);
 	Odjeca majica("Odjeca","006", "Nike", 50, 1);
+	majica.DodajVelicinu("22");
+	majica.DodajVelicinu("25");
+	majica.DodajVelicinu("31");
+	majica.DodajBoju("Crna");
+	majica.DodajBoju("Plava");
+	majica.DodajBoju("Zelena");
 
 	//Ispisati ponudu kupcu
 	Katalog katalog("Akcijska ponuda pekare!", "31.12.2018");
@@ -379,6 +384,7 @@ int main()
 	katalog.DodajProizvodKatalogu(&majica);
 	katalog.DodajProizvodKatalogu(&burek);
 	katalog.DodajProizvodKatalogu(&sirnica);
+	
 	cout << katalog << endl;
 
 	//Omogućiti kreiranje narudžbe za jednog prodavača na osnovu izbora kupca.
