@@ -144,7 +144,14 @@ public:
 		cout << "Kolicina: " << _kolicina << endl;
 	}
 
-	friend ostream& operator<<(ostream& cout, const Proizvod* proizvod);
+	friend ostream& operator<<(ostream& cout, const Proizvod* proizvod) {
+		cout << "Sifra: " << proizvod->_sifra << endl;
+		cout << "Naziv: " << proizvod->_naziv << endl;
+		cout << "Cijena: " << proizvod->_cijena << "KM" << endl;
+		cout << "Popust: " << proizvod->_popust << "%" << endl;
+		cout << "Kolicina: " << proizvod->_kolicina << endl;
+		return cout;
+	}
 };
 
 //Implementirati nasljeđivanje
@@ -176,7 +183,6 @@ public:
 			if (strcmp(velicina, _velicine[i]) == 0)
 				return false;
 		_velicine.AddElement(AlocirajNizKaraktera(velicina));
-		//cout << "Dodana velicina: " << _velicine[_velicine.GetTrenutno() - 1] << endl;
 		return true;
 	}
 
@@ -186,62 +192,46 @@ public:
 			if (strcmp(boja, _boje[i]) == 0)
 				return false;
 		_boje.AddElement(AlocirajNizKaraktera(boja));
-		//cout << "Dodana boja: " << _boje[_boje.GetTrenutno() - 1] << endl;
 		return true;
 	}
 
 	void Info() override
 	{
 		cout << _kategorija << endl;
-		cout << "Boje: " << endl;
+		cout << "Boje: ";
 		int vel = _boje.GetTrenutno();
 		for (int i = 0; i < vel; i++)
 			cout << _boje[i] << " | ";
 		cout << endl;
+		cout << "Velicine: ";
 		vel = _velicine.GetTrenutno();
 		for (int i = 0; i < vel; i++)
 			cout << _velicine[i] << " | ";
 		cout << endl;
 		Proizvod::Info();
 	}
-	friend ostream& operator<<(ostream & COUT, Odjeca& odjeca) {
-		COUT << "Kategorija: " << odjeca._kategorija << endl;
-		COUT << "Sifra: " << odjeca._sifra << endl;
-		COUT << "Naziv: " << odjeca._naziv << endl;
-		COUT << "Cijena: " << odjeca._cijena << "KM" << endl;
-		COUT << "Popust: " << odjeca._popust << "%" << endl;
-		COUT << "Kolicina: " << odjeca._kolicina << endl;
 
+	friend ostream& operator<<(ostream & COUT, const Odjeca* odjeca) {
+		COUT << "Kategorija: " << odjeca->_kategorija << endl;
+		COUT << "Sifra: " << odjeca->_sifra << endl;
+		COUT << "Naziv: " << odjeca->_naziv << endl;
+		COUT << "Cijena: " << odjeca->_cijena << "KM" << endl;
+		COUT << "Popust: " << odjeca->_popust << "%" << endl;
+		COUT << "Kolicina: " << odjeca->_kolicina << endl;
 		COUT << "Boje: ";
-		int vel = odjeca._boje.GetTrenutno();
+		int vel = odjeca->_boje.GetTrenutno();
 		for (int i = 0; i < vel; i++)
-			COUT << odjeca._boje[i] << " | ";
+			COUT << odjeca->_boje[i] << " | ";
 		COUT << endl;
 		COUT << "Velicine: ";
-		vel = odjeca._velicine.GetTrenutno();
+		vel = odjeca->_velicine.GetTrenutno();
 		for (int i = 0; i < vel; i++)
-			COUT << odjeca._velicine[i] << " | ";
+			COUT << odjeca->_velicine[i] << " | ";
 		COUT << endl;
 		return COUT;
 	}
 };
-ostream& operator<<(ostream& cout, const Proizvod* proizvod) {
-	Proizvod* proizvodTemp = const_cast<Proizvod*>(proizvod);
-	Odjeca* temp = dynamic_cast<Odjeca*>(proizvodTemp);
-	
-	if (temp == nullptr)
-	{
-		cout << "Sifra: " << proizvod->_sifra << endl;
-		cout << "Naziv: " << proizvod->_naziv << endl;
-		cout << "Cijena: " << proizvod->_cijena << "KM" << endl;
-		cout << "Popust: " << proizvod->_popust << "%" << endl;
-		cout << "Kolicina: " << proizvod->_kolicina << endl;
-	}
-	else
-		cout << *temp << endl;
-	
-	return cout;
-}
+
 class Katalog
 {
 	char* _naslov;
@@ -312,8 +302,16 @@ public:
 	friend ostream& operator<<(ostream & cout, const Katalog& katalog) {
 		cout << katalog._naslov << " - " << katalog._vrijediDo << endl;
 		int vel = katalog._proizvodi.GetTrenutno();
+		Odjeca *temp;
+
 		for (int i = 0; i < vel; i++)
-			cout << katalog._proizvodi[i] << endl;
+		{
+			temp = dynamic_cast<Odjeca*>(katalog._proizvodi[i]);
+			if (temp != nullptr)
+				cout << temp << endl;
+			else
+				cout << katalog._proizvodi[i] << endl;
+		}
 		return cout;
 	}
 };
@@ -377,6 +375,8 @@ int main()
 	majica.DodajBoju("Crna");
 	majica.DodajBoju("Plava");
 	majica.DodajBoju("Zelena");
+	majica.Info();
+
 
 	//Ispisati ponudu kupcu
 	Katalog katalog("Akcijska ponuda pekare!", "31.12.2018");
