@@ -1,4 +1,5 @@
 ﻿#include<iostream>
+#include <tuple>
 using namespace std;
 
 const char* crt = "\n------------------------------------\n";
@@ -12,6 +13,17 @@ char * AlocirajNizKaraktera(const char * sadrzaj) {
 
 	return temp;
 }
+
+bool FormatDatuma(const char* vrijediDo) {
+	int vel = strlen(vrijediDo);
+	if (vel != 9 || vrijediDo[2] != '.' || vrijediDo[5] != '.')
+		return false;
+	for (int i = 0; i < vel; i++)
+		if (i != 2 && i != 5 && !isdigit(vrijediDo[i]))
+			return false;
+	return true;
+}
+
 
 class NedozvoljenaOperacija : public exception {
 	int _linijaKoda;
@@ -43,13 +55,11 @@ public:
 		_elementi = nullptr;
 	}
 
-	void AddElement(const T& el)
+	void AddElement(const T& el, bool provjeri = false)
 	{
 		T* temp = new T[_trenutno + 1];
 		for (int i = 0; i < _trenutno; i++)
-		{
 			temp[i] = _elementi[i];
-		}
 
 		delete[] _elementi;
 		_elementi = temp;
@@ -130,11 +140,13 @@ public:
 		_naziv = nullptr;
 	}
 
-	bool operator==(const Proizvod& proizvod) {
+	bool operator==(const Proizvod& proizvod) const {
 		return proizvod.GetSifra() == _sifra;
 	}
 
 	const char* GetSifra() const { return _sifra; }
+	int GetKolicina() const { return _kolicina; }
+	double IzracunajCijenu() const { return _cijena * _kolicina - (_cijena * _kolicina * _popust / 100); }
 
 	//Implementirati potrebne funkcije za rad sa klasom
 	virtual void Info()
@@ -239,20 +251,10 @@ class Katalog
 	char* _naslov;
 	char* _vrijediDo; //Datum u formatu dd.MM.yyyy
 	Kolekcija<Proizvod*> _proizvodi;
-
-	bool ProvjeriDatum(const char* vrijediDo) {
-		int vel = strlen(vrijediDo);
-		if (vel != 9 || vrijediDo[2] != '.' || vrijediDo[5] != '.')
-			return false;
-		for (int i = 0; i < vel; i++)
-			if (i != 2 && i != 5 && !isdigit(vrijediDo[i]))
-				return false;
-		return true;
-	}
 public:
 	//Potrebne konstruktor i destruktor funkcije
 	Katalog(const char* naslov, const char* vrijediDo) {
-		if (ProvjeriDatum(vrijediDo))
+		if (FormatDatuma(vrijediDo))
 			throw NedozvoljenaOperacija(__LINE__, "Datum nije u formatu dd.MM.yyyy.");
 		//U slučaju da datum ne ispunjava zadati format baciti izuzetak
 		_naslov = AlocirajNizKaraktera(naslov);
@@ -299,7 +301,6 @@ public:
 		throw NedozvoljenaOperacija(__LINE__, "Sifra proizvoda nije pronadjena.");
 	}
 
-
 	//Preklopiti operator za ispis kataloške ponude
 	friend ostream& operator<<(ostream & cout, Katalog& katalog) {
 		cout << katalog._naslov << " - " << katalog._vrijediDo << endl;
@@ -319,27 +320,105 @@ public:
 
 class Narudzba
 {
-	
 	int _broj;
 	char* _datumIsporuke; //Datum u formatu dd.MM.yyyy
 	Kolekcija<Proizvod*> _naruceniProizvodi;
-	bool otkazana;
+	bool _otkazana;
 public:
+	int GetTrenutno() { return _naruceniProizvodi.GetTrenutno(); }
+
+	Proizvod*& operator[](const int& lokacija)
+	{
+		if (lokacija < 0 || lokacija >= _naruceniProizvodi.GetTrenutno())
+			throw NedozvoljenaOperacija(__LINE__, "Lokazija za ovaj proizvod nije dostupna.");
+		return _naruceniProizvodi[lokacija];
+	}
+
 	//Potrebne konstruktor i destruktor funkcije
-	//U slučaju da datum ne ispunjava zadati format baciti izuzetak.
+	Narudzba(int broj, const char* datumIsporuke) :
+		_datumIsporuke(AlocirajNizKaraktera(datumIsporuke)),
+		_broj(broj), _otkazana(false) {
+		//U slučaju da datum ne ispunjava zadati format baciti izuzetak.
+		if (!FormatDatuma(datumIsporuke))
+			throw NedozvoljenaOperacija(__LINE__, "Nrispravan datum isporuke.");
+	}
+
+	Narudzba(Narudzba& narudzba) :
+		_datumIsporuke(AlocirajNizKaraktera(narudzba._datumIsporuke)),
+		_broj(narudzba._broj), _otkazana(narudzba._otkazana)
+	{
+		int vel = narudzba._naruceniProizvodi.GetTrenutno();
+		for (int i = 0; i < vel; i++)
+			_naruceniProizvodi.AddElement(new Proizvod(*narudzba._naruceniProizvodi[i]));
+	}
+
+	~Narudzba() { 
+		delete[] _datumIsporuke; 
+		int vel = _naruceniProizvodi.GetTrenutno();
+		for (int i = 0; i < vel; i++)
+			delete _naruceniProizvodi[i];
+	}
+
+	void operator=(Narudzba& narudzba)
+	{
+		delete[] _datumIsporuke;
+		_datumIsporuke = AlocirajNizKaraktera(narudzba._datumIsporuke);
+		_broj = narudzba._broj;
+		_otkazana = narudzba._otkazana;
+
+		int vel = _naruceniProizvodi.GetTrenutno();
+		for (int i = 0; i < vel; i++)
+			delete _naruceniProizvodi[i];
+
+		vel = narudzba._naruceniProizvodi.GetTrenutno();
+		for (int i = 0; i < vel; i++)
+			_naruceniProizvodi.AddElement(new Proizvod(*narudzba._naruceniProizvodi[i]));
+	}
 
 	//Kreirati funkciju za dodavanje proizvoda narudžbe sa povratnom vrijednošću tipa bool.
 	//Ukoliko proizvod više nije dostupan baciti izuzetak.
 	//Dozvoliti dodavanje istog proizvoda više puta.
+	bool DodajProizvodNarudzbi(const Proizvod& proizvod) {
+		_naruceniProizvodi.AddElement(new Proizvod(proizvod));
+	}
 
 	//Funkciju za uklanjanje određenog proizvoda iz narudžbe. Voditi računa da narudžba može 
 	//imati više puta isti proizvod.
-
+	void UkloniProizvod(const Proizvod& proizvod)
+	{
+		int vel = _naruceniProizvodi.GetTrenutno();
+		for (int i = 0; i < vel; i++)
+			if (*_naruceniProizvodi[i] == proizvod)
+			{
+				delete _naruceniProizvodi[i];
+				_naruceniProizvodi[i--] = _naruceniProizvodi[--vel];
+			}
+	}
+	
 	//Dodati funkciju za proračun ukupne cijene narudžbe.
 	//Voditi računa o mogućnosti dodavanja više istih proizvoda (količina).
 	//Uračunati popust u slučaju da je definisan.
+	double ProracunUkupneCijene() {
+		double suma = 0;
+		int vel = _naruceniProizvodi.GetTrenutno();
+		for (int i = 0; i < vel; i++)
+			suma += _naruceniProizvodi[i]->IzracunajCijenu();
+		return suma;
+	}
+
+	int GetBroj() const { return _broj; }
+	void SetOtkazana(bool otkazana) { _otkazana = otkazana; }
+	bool GetOtkazana() const { return _otkazana; }
 
 	//Preklopiti operator za ispis podataka o narudžbi zajedno sa cijenom.
+	friend ostream& operator<<(ostream & cout, Narudzba& narudzba) {
+		cout << "Broj narudžbe: " << narudzba._broj << endl;
+		cout << "Datum isporuke: " << narudzba._datumIsporuke << endl;
+		cout << "Otkazana: " << narudzba._otkazana << endl;
+		cout << "Naruceni proizvodi: \n" << narudzba._naruceniProizvodi;
+		cout << "Proracun ukupne cijene: " << narudzba.ProracunUkupneCijene() << endl;
+		return cout;
+	}
 };
 
 //U posljednjoj klasi samostalno prepoznati izuzetne situacije
@@ -349,17 +428,99 @@ class Prodavac
 	Kolekcija<Narudzba>* _narudzbe;
 public:
 	//Potrebne konstruktor i destruktor funkcije
+	Prodavac(const char* imePrezime): _imePrezime(AlocirajNizKaraktera(imePrezime)) {
+		_narudzbe = new Kolekcija<Narudzba>();
+	}
 
 	//Omogućiti dodavanje narudžbi za prodavača
+	void DodajNarudzbu(const Narudzba& narudzba) {
+		_narudzbe->AddElement(narudzba);
+	}
+
+	~Prodavac()
+	{
+		delete[] _imePrezime;
+		delete[] _narudzbe;
+	}
 
 	//Omogućiti otkazivanje narudžbe na osnovu njenog broja.
+	bool OtkaziNarudzbu(const int& broj) {
+		for (int i = 0; i < _narudzbe->GetTrenutno(); i++)
+			for (int j = 0; j < _narudzbe[i].GetTrenutno(); j++)
+				if (_narudzbe[i][j].GetBroj() == broj)
+				{
+					_narudzbe[i][j].SetOtkazana(true);
+					return true;
+				}
+		return false;
+	}
+
+	void KratkeInformacijeNarudzbe(bool otkazana)
+	{
+		int x = _narudzbe->GetTrenutno();
+		for (int i = 0; i < x; i++) {
+			int y = _narudzbe[i].GetTrenutno();
+			for (int j = 0; j < y; j++) {
+				int z = _narudzbe[i][j].GetTrenutno();
+				for (int k = 0; k < z; k++)
+					if (_narudzbe[i][j].GetOtkazana() == otkazana)
+						cout << _narudzbe[i][j][k]->GetSifra() << " -> " << _narudzbe[i][j][k]->IzracunajCijenu() << "KM" << endl;
+			}
+		}
+	}
 
 	//Ispis svih podataka o prodavaču i kratke informacije o
 	//svim narudžbama (datum, broj proizvoda i cijena). Posebno izdvojiti otkazane narudžbe.
+	void KratkeInformacije()
+	{
+		cout << "Ime i prezime: " << _imePrezime << endl;
+		cout << "Narudzbe: " << endl;
+		KratkeInformacijeNarudzbe(false);
+		cout << crt;
+		cout << "Otkazane narudzbe: " << endl;
+		KratkeInformacijeNarudzbe(true);
+		cout << crt;
+	}
 
 	//Implementirati metodu koja u svim aktivnim narudžbama pronalazi proizvod koji se najviše prodavao
 	//sa informacijom o tome da li se radi o odjeći ili osnovnom proizvodu.
+	Proizvod* NajprodavanijiProizvod()//prilikom poziva provjeriti kojeg je tipa
+	{
+		Kolekcija<Proizvod*> proizvodi;
+		for (int i = 0; i < _narudzbe->GetTrenutno(); i++)
+			for (int j = 0; j < _narudzbe[i].GetTrenutno(); j++)
+				if (!_narudzbe[i][j].GetOtkazana())
+					for (int k = 0; k < _narudzbe[i][j].GetTrenutno(); k++)
+						proizvodi.AddElement(_narudzbe[i][j][k]);
 
+		int vel = proizvodi.GetTrenutno();
+		if (vel <= 0)
+			return nullptr;
+
+		Proizvod* max = proizvodi[0];
+		int maxBrojac = 1;
+		for (int i = 1; i < vel-1; i++)
+			for (int j = i + 1; j < vel; j++)
+				if (*max == *proizvodi[i])
+					maxBrojac++;
+
+		Proizvod* temp;
+		int tempBrojac = 0;
+		for (int i = 1; i < vel - 1; i++)
+		{
+			temp = proizvodi[i];
+			for (int j = i + 1; j < vel; j++)
+				if (*temp == *proizvodi[i])
+					tempBrojac++;
+
+			if (tempBrojac > maxBrojac)
+			{
+				maxBrojac = tempBrojac;
+				max = temp;
+			}
+		}
+		return max;
+	}
 };
 
 int main()
