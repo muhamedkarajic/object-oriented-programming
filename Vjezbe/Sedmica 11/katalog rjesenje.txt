@@ -141,11 +141,12 @@ public:
 	}
 
 	bool operator==(const Proizvod& proizvod) const {
-		return proizvod.GetSifra() == _sifra;
+		return strcmp(proizvod.GetSifra(), _sifra) == 0;
 	}
 
 	const char* GetSifra() const { return _sifra; }
 	int GetKolicina() const { return _kolicina; }
+	void SetKolicina(int kolicina) { _kolicina += kolicina; }
 	double IzracunajCijenu() const { return _cijena * _kolicina - (_cijena * _kolicina * _popust / 100); }
 
 	//Implementirati potrebne funkcije za rad sa klasom
@@ -376,10 +377,11 @@ public:
 	}
 
 	//Kreirati funkciju za dodavanje proizvoda narudžbe sa povratnom vrijednošću tipa bool.
-	//Ukoliko proizvod više nije dostupan baciti izuzetak.
+	//Ukoliko proizvod više nije dostupan baciti izuzetak. Komentar Muhamed: Buni me kad trebam vratiti izuzetak?
 	//Dozvoliti dodavanje istog proizvoda više puta.
 	bool DodajProizvodNarudzbi(const Proizvod& proizvod) {
 		_naruceniProizvodi.AddElement(new Proizvod(proizvod));
+		return true;
 	}
 
 	//Funkciju za uklanjanje određenog proizvoda iz narudžbe. Voditi računa da narudžba može 
