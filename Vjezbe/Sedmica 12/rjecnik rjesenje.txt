@@ -1,0 +1,269 @@
+﻿#include<iostream>
+#include<vector>
+#include<string>
+#include<algorithm>
+#include<exception>
+#include <time.h>
+using namespace std;
+
+const char* crt = "\n-------------------------------------------\n";
+
+char* AlocirajNizKaraktera(const char* sadrzaj)
+{
+	if (sadrzaj == nullptr)
+		return nullptr;
+	int vel = strlen(sadrzaj)+1;
+	char* temp = new char[vel];
+	strcpy_s(temp, vel, sadrzaj);
+	return temp;
+}
+class Term //Pojam
+{
+	char* _key;
+	char* _value;
+public:
+	//Konstruktor
+	Term(const string& key, const string& value)
+	{
+		_key = AlocirajNizKaraktera(key.c_str());
+		_value = AlocirajNizKaraktera(value.c_str());
+	}
+
+	Term(const Term& term)
+	{
+		_key = AlocirajNizKaraktera(term._key);
+		_value = AlocirajNizKaraktera(term._value);
+	}
+
+	//Destruktor
+	~Term()
+	{
+		delete[] _key;
+		delete[] _value;
+	}
+	//Operator za ispis
+	friend ostream& operator<<(ostream &cout, const Term& term)
+	{
+		cout << term._key << " - " << term._value << endl; 
+		return cout;
+	}
+	//Operatori poređenja == i != (koristiti samo vrijednost atributa _key)
+	//bool operator==(const string& key) const { return key == _key; }
+	//bool operator!=(const string& key) const { return !(key == this->GetKey()); }
+	bool operator==(const Term& term) const { return strcmp(_key, term._key) == 0; }
+	bool operator!=(const Term& term) const { return !(*this == term); }
+	
+	bool operator<(const Term& term) const { return strcmp(_key, term._key) < 0; }//std::sort
+
+	void operator=(const Term& term) //std::sort
+	{ 
+		delete[] _key;
+		delete[] _value;
+		_key = AlocirajNizKaraktera(term._key);
+		_value = AlocirajNizKaraktera(term._value);
+	}
+
+	const char* GetKey() const { return _key; }
+	char* GetValue() const { return _value; }
+
+};
+
+
+class Dictionary //Riječnik pojmova
+{
+	string _title;
+	int _publicationYear;
+	//Ključne riječi bosanskog jezika u atribut _key
+	//Odgovarajući prevod na engleskom jeziku u atribut _value
+	vector<Term> _terms;
+public:
+	//Konstruktor
+	Dictionary(const string& title, const int& publicationYear)
+	{
+		_title = title;
+		_publicationYear = publicationYear;
+	}
+	//Operator () za dodavanje novih pojmova u riječnik (u paru key-value).
+	//Spriječiti dodavanje istih vrijednosti u kolekciju (baciti izuzetak).
+	//Pojmovi u svakom momentu treba da budu sortirani abecedno (koristiti funkciju sort iz biblioteke algorithm).
+	void operator()(const Term &term)
+	{
+		if (find(_terms.begin(), _terms.end(), term) != _terms.end())
+			throw exception("Pojam je vec dodan.");
+		_terms.push_back(term);
+		sort(_terms.begin(), _terms.end());
+	}
+
+	//Operator -= za uklanjanje pojma iz riječnika na osnovu atributa _key.
+	void operator-=(const char* key)
+	{
+		Term term(key, "");
+		int vel = _terms.size();
+		for (int i = 0; i < vel; i++)
+			if (strcmp(_terms[i].GetKey(), key) == 0)
+			{
+				_terms.erase(_terms.begin() + i);
+				return;
+			}
+	}
+
+	//Funkciju koja vraća trenutni broj pojmova u riječniku.
+	int GetTrenutno() const { return _terms.size(); }
+
+	//operator[] koji vraća vrijednost na osnovu ključne riječi (povratna vrijednost je engleska riječ-value, 
+	//na osnovu bosanske-key)
+	char* operator[](string key)
+	{
+		vector<Term>::iterator i = _terms.begin();
+		while (i != _terms.end()) {
+			if (key == i->GetKey())
+				return i->GetValue();
+			i++;
+		}
+		return nullptr;
+	}
+
+	string RandomRijec()
+	{
+		srand(time(NULL));
+		int min = 0, max = _terms.size()-1, randNum = rand() % (max - min + 1) + min;
+		return (_terms.begin() + randNum)->GetKey();
+	}
+
+	//Funkciju koja vraća kolekciju ključeva (bosanskih riječi) generisanih slučajnim odabirom.
+	//Generisanje slučajnog broja između min i max: int randNum = rand()%(max-min + 1) + min;
+	//Funkcija kao parametar prima broj riječi koje je potrebno generisati.
+	vector<string> GenerisanjeRijeci(int brojRijeci)
+	{
+
+		vector<string> kolekcijaKljuceva;
+		vector<Term>::iterator i = _terms.begin();
+		string kljuc;
+		while (brojRijeci != 0)
+		{
+			kljuc = RandomRijec();
+			if (find(kolekcijaKljuceva.begin(), kolekcijaKljuceva.end(), kljuc) == kolekcijaKljuceva.end())
+			{
+				kolekcijaKljuceva.push_back(kljuc);
+				brojRijeci--;
+			}
+		}
+		return kolekcijaKljuceva;
+	}
+	
+
+	//DODATNO:
+	friend ostream& operator<<(ostream &cout, const Dictionary& dictionary)
+	{
+		cout << ">>\t" << dictionary._title << "("<< dictionary._publicationYear << ")" << "\t<<" << crt << endl;
+		int vel = dictionary.GetTrenutno();
+		for (int i = 0; i < vel; i++)
+			cout << dictionary._terms[i].GetKey() << " - " << dictionary._terms[i].GetValue() << endl;
+		cout << crt << endl;
+		return cout;
+	}
+};
+
+//Osmisliti i implementirati klasu Competitor (Takmičar) na način da se upotrebom objekta klase Dictionary
+//svakom takmičaru dodijele određena pitanja (riječi bosanskog jezika) - koristiti implementiranu funkciju klase Dictionary.
+//Svakom pitanju je potrebno pridružiti odgovor takmičara (kolekcija _odgovori).
+//Obavezno implementirati funkciju koja vrši kalkulaciju osvojenih bodova (1 tačan odgovor = 1 bod).
+//Po potrebi dopuniti klasu dodatnim atributima.
+class Competitor //Takmičar
+{
+	string _ime;
+	string _prezime;
+	vector<string> _pitanja;
+	vector<string*> _odgovori;
+public:
+
+
+};
+
+int main()
+{
+	//Kreirati riječnik pojmova.
+	//Kreirati niz objekata tipa Competitor i simulirati takmičenje u poznavanju riječi engleskog jezika.
+	//Pronaći najboljeg među takmičarima (najveći broj bodova).
+
+/*#pragma region Dictionary
+
+	Term term1("tekst", "text");
+	Term term2("telefon", "telephone");
+	Term term3("dan", "day");
+	Term term4("auto", "car");
+
+	Dictionary rjecnik("English-Bosnian - Glosbe", 2015);
+	rjecnik(term1);
+	rjecnik(term2);
+	rjecnik(term3);
+	rjecnik(term4);
+
+	cout << rjecnik << endl;
+	cout << "rjecnik[\"dan\"]: " << rjecnik["dan"] << crt;
+
+	rjecnik -= "dan";
+	cout << "Poziv rjecnik -= \"dan\": " << endl;
+	cout << rjecnik << endl;
+
+#pragma endregion*/
+
+
+	Dictionary rjecnik("rjecnik.ba", 2019);
+	Term term1("seciranje", "anatomy");
+	Term term2("preci", "ancestory");
+	Term term3("atomski", "atomic");
+	Term term4("trava", "grass");
+	Term term5("torba", "bag");
+	Term term6("cipele", "shoes");
+	Term term7("patka", "duck");
+	Term term8("majica", "t-shirt");
+	Term term9("kivi", "kiwi");
+	Term term10("lopta", "ball");
+
+	rjecnik(term1);
+	rjecnik(term2);
+	rjecnik(term3);
+	rjecnik(term4);
+	rjecnik(term5);
+	rjecnik(term6);
+	rjecnik(term7);
+	rjecnik(term8);
+	rjecnik(term9);
+	rjecnik(term10);
+	try
+	{
+		rjecnik(term10);
+	}
+	catch (const std::exception& err)
+	{
+		cout << err.what() << endl;
+	}
+
+
+	const int max = 3;
+	vector<string> rijeci = rjecnik.GenerisanjeRijeci(max);
+	string kljuc;
+	string unos;
+	int bodovi = 0;
+	cout << "Prevedi na engleski jezik: " << endl;
+	for (int i = 0; i < max; i++)
+	{
+		kljuc = rijeci[i];
+
+		cout << kljuc << ": ";
+		cin >> unos;
+		if (unos == rjecnik[kljuc])
+			bodovi++;
+		else
+			break;
+	}
+
+	cout << "Osvojeno bodova: " << ((float)(bodovi)/max)*100 << "%" << endl;
+
+	system("pause>0");
+
+	return 0;
+}
+
+
