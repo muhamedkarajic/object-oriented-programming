@@ -65,7 +65,6 @@ public:
 
 	const char* GetKey() const { return _key; }
 	char* GetValue() const { return _value; }
-
 };
 
 
@@ -83,6 +82,14 @@ public:
 		_title = title;
 		_publicationYear = publicationYear;
 	}
+
+	Dictionary(const Dictionary& rjecnik)
+	{
+		_title = rjecnik._title;
+		_publicationYear = rjecnik._publicationYear;
+		_terms = rjecnik._terms;
+	}
+
 	//Operator () za dodavanje novih pojmova u riječnik (u paru key-value).
 	//Spriječiti dodavanje istih vrijednosti u kolekciju (baciti izuzetak).
 	//Pojmovi u svakom momentu treba da budu sortirani abecedno (koristiti funkciju sort iz biblioteke algorithm).
@@ -150,7 +157,6 @@ public:
 		}
 		return kolekcijaKljuceva;
 	}
-	
 
 	//DODATNO:
 	friend ostream& operator<<(ostream &cout, const Dictionary& dictionary)
@@ -176,9 +182,64 @@ class Competitor //Takmičar
 	vector<string> _pitanja;
 	vector<string*> _odgovori;
 public:
+	double Bodovi(Dictionary rjecnik)
+	{
+		int vel = _pitanja.size();
+		int bodovi = 0;
+		for (int i = 0; i < vel; i++)
+			if (*_odgovori[i] == rjecnik[_pitanja[i]])
+				bodovi++;
+		return (float)bodovi/(vel)*100;
+	}
 
+	vector<string>& GetPitanja()
+	{
+		if (!_pitanja.size())
+			throw exception("Nema pitanja.");
+		return _pitanja;
+	}
+
+	Competitor(const char* ime, const char* prezime)
+	{
+		_ime = ime;
+		_prezime = prezime;
+	}
+
+	~Competitor()
+	{
+		int vel = _odgovori.size();
+		for (int i = 0; i < vel; i++)
+			delete _odgovori[i];
+	}
+
+	void AddOdgovor(const string& odgovor) { _odgovori.push_back(new string(odgovor)); }
+
+	void GenerisiPitanja(Dictionary rjecnik, const int brojPitanja) { _pitanja = rjecnik.GenerisanjeRijeci(brojPitanja); }
 
 };
+
+void PokreniTest(Competitor& takmicar, Dictionary rjecnik, int brojPitanja)
+{
+	takmicar.GenerisiPitanja(rjecnik, brojPitanja);
+	vector<string> rijeci = takmicar.GetPitanja();
+	string kljuc;
+	string unos;
+	int bodovi = 0;
+	cout << "Prevedi na engleski jezik: " << endl;
+	for (int i = 0; i < brojPitanja; i++)
+	{
+		kljuc = rijeci[i];
+
+		cout << kljuc << ": ";
+		cin >> unos;
+		takmicar.AddOdgovor(unos);
+	
+	}
+
+	cout << "Osvojeno bodova: " << takmicar.Bodovi(rjecnik) << "%" << crt;
+}
+
+
 
 int main()
 {
@@ -240,26 +301,11 @@ int main()
 		cout << err.what() << endl;
 	}
 
+	Competitor muhamed("Muhamed", "Karajic");
 
-	const int max = 3;
-	vector<string> rijeci = rjecnik.GenerisanjeRijeci(max);
-	string kljuc;
-	string unos;
-	int bodovi = 0;
-	cout << "Prevedi na engleski jezik: " << endl;
-	for (int i = 0; i < max; i++)
-	{
-		kljuc = rijeci[i];
+	PokreniTest(muhamed, rjecnik, 5);
 
-		cout << kljuc << ": ";
-		cin >> unos;
-		if (unos == rjecnik[kljuc])
-			bodovi++;
-		else
-			break;
-	}
 
-	cout << "Osvojeno bodova: " << ((float)(bodovi)/max)*100 << "%" << endl;
 
 	system("pause>0");
 
