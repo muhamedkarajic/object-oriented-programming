@@ -3,7 +3,7 @@
 #include<string>
 #include<algorithm>
 #include<exception>
-#include <time.h>
+#include<time.h>
 using namespace std;
 
 const char* crt = "\n-------------------------------------------\n";
@@ -12,7 +12,7 @@ char* AlocirajNizKaraktera(const char* sadrzaj)
 {
 	if (sadrzaj == nullptr)
 		return nullptr;
-	int vel = strlen(sadrzaj)+1;
+	int vel = strlen(sadrzaj) + 1;
 	char* temp = new char[vel];
 	strcpy_s(temp, vel, sadrzaj);
 	return temp;
@@ -44,19 +44,19 @@ public:
 	//Operator za ispis
 	friend ostream& operator<<(ostream &cout, const Term& term)
 	{
-		cout << term._key << " - " << term._value << endl; 
+		cout << term._key << " - " << term._value << endl;
 		return cout;
 	}
 	//Operatori poređenja == i != (koristiti samo vrijednost atributa _key)
-	//bool operator==(const string& key) const { return key == _key; }
-	//bool operator!=(const string& key) const { return !(key == this->GetKey()); }
+	bool operator==(const string& key) const { return key == _key; }
+	bool operator!=(const string& key) const { return !(key == this->GetKey()); }
 	bool operator==(const Term& term) const { return strcmp(_key, term._key) == 0; }
 	bool operator!=(const Term& term) const { return !(*this == term); }
-	
+
 	bool operator<(const Term& term) const { return strcmp(_key, term._key) < 0; }//std::sort
 
 	void operator=(const Term& term) //std::sort
-	{ 
+	{
 		delete[] _key;
 		delete[] _value;
 		_key = AlocirajNizKaraktera(term._key);
@@ -83,14 +83,18 @@ public:
 		_publicationYear = publicationYear;
 	}
 
-	Dictionary(const Dictionary& rjecnik)
+	//Operator () za dodavanje novih pojmova u riječnik (u paru key-value).
+	//Spriječiti dodavanje istih vrijednosti u kolekciju (baciti izuzetak).
+	//Pojmovi u svakom momentu treba da budu sortirani abecedno (koristiti funkciju sort iz biblioteke algorithm).
+	void operator()(const char* key, const char* value)
 	{
-		_title = rjecnik._title;
-		_publicationYear = rjecnik._publicationYear;
-		_terms = rjecnik._terms;
+		if (find(_terms.begin(), _terms.end(), key) != _terms.end())
+			throw exception("Pojam je vec dodan.");
+		_terms.push_back(Term(key,value));
+		sort(_terms.begin(), _terms.end());
 	}
 
-	//Operator () za dodavanje novih pojmova u riječnik (u paru key-value).
+	//Operator () za dodavanje novih pojmova u riječnik (const Term&).
 	//Spriječiti dodavanje istih vrijednosti u kolekciju (baciti izuzetak).
 	//Pojmovi u svakom momentu treba da budu sortirani abecedno (koristiti funkciju sort iz biblioteke algorithm).
 	void operator()(const Term &term)
@@ -133,7 +137,7 @@ public:
 	string RandomRijec()
 	{
 		srand(time(NULL));
-		int min = 0, max = _terms.size()-1, randNum = rand() % (max - min + 1) + min;
+		int min = 0, max = _terms.size() - 1, randNum = rand() % (max - min + 1) + min;
 		return (_terms.begin() + randNum)->GetKey();
 	}
 
@@ -161,7 +165,7 @@ public:
 	//DODATNO:
 	friend ostream& operator<<(ostream &cout, const Dictionary& dictionary)
 	{
-		cout << ">>\t" << dictionary._title << "("<< dictionary._publicationYear << ")" << "\t<<" << crt << endl;
+		cout << ">>\t" << dictionary._title << "(" << dictionary._publicationYear << ")" << "\t<<" << crt << endl;
 		int vel = dictionary.GetTrenutno();
 		for (int i = 0; i < vel; i++)
 			cout << dictionary._terms[i].GetKey() << " - " << dictionary._terms[i].GetValue() << endl;
@@ -189,7 +193,7 @@ public:
 		for (int i = 0; i < vel; i++)
 			if (*_odgovori[i] == rjecnik[_pitanja[i]])
 				bodovi++;
-		return (float)bodovi/(vel)*100;
+		return (float)bodovi / (vel) * 100;
 	}
 
 	vector<string>& GetPitanja()
@@ -233,7 +237,7 @@ void PokreniTest(Competitor& takmicar, Dictionary rjecnik, int brojPitanja)
 		cout << kljuc << ": ";
 		cin >> unos;
 		takmicar.AddOdgovor(unos);
-	
+
 	}
 
 	cout << "Osvojeno bodova: " << takmicar.Bodovi(rjecnik) << "%" << crt;
@@ -311,5 +315,4 @@ int main()
 
 	return 0;
 }
-
 
