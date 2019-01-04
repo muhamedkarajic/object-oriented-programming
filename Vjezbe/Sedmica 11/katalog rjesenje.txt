@@ -147,6 +147,7 @@ public:
 	const char* GetSifra() const { return _sifra; }
 	int GetKolicina() const { return _kolicina; }
 	void SetKolicina(int kolicina) { _kolicina += kolicina; }
+	double IzracunajCijenuJednog() const { return _cijena * (_cijena * _popust / 100); }
 	double IzracunajCijenu() const { return _cijena * _kolicina - (_cijena * _kolicina * _popust / 100); }
 
 	//Implementirati potrebne funkcije za rad sa klasom
@@ -169,6 +170,36 @@ public:
 	}
 };
 
+
+Proizvod* NajveciProizvod(Kolekcija<Proizvod*> proizvodi)
+{
+	int vel = proizvodi.GetTrenutno();
+	if (vel <= 0)
+		return nullptr;
+
+	Proizvod* max = proizvodi[0];
+	int maxBrojac = 1;
+	for (int i = 1; i < vel - 1; i++)
+		for (int j = i + 1; j < vel; j++)
+			if (*max == *proizvodi[i])
+				maxBrojac++;
+
+	Proizvod* temp;
+	int tempBrojac = 0;
+	for (int i = 1; i < vel - 1; i++)
+	{
+		temp = proizvodi[i];
+		for (int j = i + 1; j < vel; j++)
+			if (*temp == *proizvodi[i])
+				tempBrojac++;
+
+		if (tempBrojac > maxBrojac)
+		{
+			maxBrojac = tempBrojac;
+			max = temp;
+		}
+	}
+}
 //Implementirati nasljeđivanje
 class Odjeca : public Proizvod
 {
@@ -328,6 +359,14 @@ class Narudzba
 public:
 	int GetTrenutno() { return _naruceniProizvodi.GetTrenutno(); }
 
+	void OsnovneInformacije(bool otkazana)
+	{
+		cout << "Datum: " << _datumIsporuke << endl;
+		for (int i = 0; i < _naruceniProizvodi.GetTrenutno(); i++)
+			if (_otkazana == otkazana)
+				cout << _naruceniProizvodi[i]->GetSifra() << " -> " << _naruceniProizvodi[i]->IzracunajCijenu() << "KM" << endl;
+	}
+
 	Proizvod*& operator[](const int& lokacija)
 	{
 		if (lokacija < 0 || lokacija >= _naruceniProizvodi.GetTrenutno())
@@ -377,11 +416,13 @@ public:
 	}
 
 	//Kreirati funkciju za dodavanje proizvoda narudžbe sa povratnom vrijednošću tipa bool.
-	//Ukoliko proizvod više nije dostupan baciti izuzetak. Komentar Muhamed: Buni me kad trebam vratiti izuzetak?
+	//Ukoliko proizvod više nije dostupan baciti izuzetak.
 	//Dozvoliti dodavanje istog proizvoda više puta.
-	bool DodajProizvodNarudzbi(const Proizvod& proizvod) {
-		_naruceniProizvodi.AddElement(new Proizvod(proizvod));
-		return true;
+	void DodajProizvodNarudzbi(Proizvod& proizvod) {
+		if (!proizvod.GetKolicina())
+			throw exception("Proizvod nije dostupan.");
+		proizvod.SetKolicina(proizvod.GetKolicina() - 1);
+		_naruceniProizvodi.AddElement(&proizvod);
 	}
 
 	//Funkciju za uklanjanje određenog proizvoda iz narudžbe. Voditi računa da narudžba može 
@@ -404,13 +445,15 @@ public:
 		double suma = 0;
 		int vel = _naruceniProizvodi.GetTrenutno();
 		for (int i = 0; i < vel; i++)
-			suma += _naruceniProizvodi[i]->IzracunajCijenu();
+			suma += _naruceniProizvodi[i]->IzracunajCijenuJednog();
 		return suma;
 	}
 
 	int GetBroj() const { return _broj; }
 	void SetOtkazana(bool otkazana) { _otkazana = otkazana; }
 	bool GetOtkazana() const { return _otkazana; }
+
+
 
 	//Preklopiti operator za ispis podataka o narudžbi zajedno sa cijenom.
 	friend ostream& operator<<(ostream & cout, Narudzba& narudzba) {
@@ -459,21 +502,14 @@ public:
 
 	void KratkeInformacijeNarudzbe(bool otkazana)
 	{
-		int x = _narudzbe->GetTrenutno();
-		for (int i = 0; i < x; i++) {
-			int y = _narudzbe[i].GetTrenutno();
-			for (int j = 0; j < y; j++) {
-				int z = _narudzbe[i][j].GetTrenutno();
-				for (int k = 0; k < z; k++)
-					if (_narudzbe[i][j].GetOtkazana() == otkazana)
-						cout << _narudzbe[i][j][k]->GetSifra() << " -> " << _narudzbe[i][j][k]->IzracunajCijenu() << "KM" << endl;
-			}
-		}
+		for (int i = 0; i < _narudzbe->GetTrenutno(); i++)
+			for (int j = 0; j < _narudzbe[i].GetTrenutno(); j++)
+				_narudzbe[i][j].OsnovneInformacije(otkazana);
 	}
 
 	//Ispis svih podataka o prodavaču i kratke informacije o
 	//svim narudžbama (datum, broj proizvoda i cijena). Posebno izdvojiti otkazane narudžbe.
-	void KratkeInformacije()
+	void Ispis()
 	{
 		cout << "Ime i prezime: " << _imePrezime << endl;
 		cout << "Narudzbe: " << endl;
@@ -484,44 +520,24 @@ public:
 		cout << crt;
 	}
 
-	//Implementirati metodu koja u svim aktivnim narudžbama pronalazi proizvod koji se najviše prodavao
-	//sa informacijom o tome da li se radi o odjeći ili osnovnom proizvodu.
-	Proizvod* NajprodavanijiProizvod()//prilikom poziva provjeriti kojeg je tipa
+	//otkazan vraca sve otkazane ili ne otkazane proizvode
+	Kolekcija<Proizvod*> GetSveProizvode(bool otkazan)
 	{
 		Kolekcija<Proizvod*> proizvodi;
 		for (int i = 0; i < _narudzbe->GetTrenutno(); i++)
 			for (int j = 0; j < _narudzbe[i].GetTrenutno(); j++)
-				if (!_narudzbe[i][j].GetOtkazana())
+				if (_narudzbe[i][j].GetOtkazana() ==  otkazan)
 					for (int k = 0; k < _narudzbe[i][j].GetTrenutno(); k++)
 						proizvodi.AddElement(_narudzbe[i][j][k]);
+		return proizvodi;
+	}
 
-		int vel = proizvodi.GetTrenutno();
-		if (vel <= 0)
-			return nullptr;
-
-		Proizvod* max = proizvodi[0];
-		int maxBrojac = 1;
-		for (int i = 1; i < vel-1; i++)
-			for (int j = i + 1; j < vel; j++)
-				if (*max == *proizvodi[i])
-					maxBrojac++;
-
-		Proizvod* temp;
-		int tempBrojac = 0;
-		for (int i = 1; i < vel - 1; i++)
-		{
-			temp = proizvodi[i];
-			for (int j = i + 1; j < vel; j++)
-				if (*temp == *proizvodi[i])
-					tempBrojac++;
-
-			if (tempBrojac > maxBrojac)
-			{
-				maxBrojac = tempBrojac;
-				max = temp;
-			}
-		}
-		return max;
+	//Implementirati metodu koja u svim aktivnim narudžbama pronalazi proizvod koji se najviše prodavao
+	//sa informacijom o tome da li se radi o odjeći ili osnovnom proizvodu.
+	Proizvod* NajprodavanijiProizvod()//prilikom poziva provjeriti kojeg je tipa
+	{
+		Kolekcija<Proizvod*> proizvodi = GetSveProizvode(false);
+		return NajveciProizvod(proizvodi);
 	}
 };
 
