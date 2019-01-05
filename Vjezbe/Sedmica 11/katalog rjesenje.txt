@@ -214,6 +214,8 @@ Proizvod* NajveciProizvod2(Kolekcija<Proizvod*> proizvodi)
 		for (int i = 0; i < temp.GetTrenutno(); i++)
 			if (proizvodi[i] == temp[i].first)
 				temp[i].second++;
+			else
+				temp.AddElement(make_pair(proizvodi[0], 1));
 
 	int lokacija = 0;
 	for (int i = 0; i < temp.GetTrenutno(); i++)
