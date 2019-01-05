@@ -200,6 +200,29 @@ Proizvod* NajveciProizvod(Kolekcija<Proizvod*> proizvodi)
 		}
 	}
 }
+
+Proizvod* NajveciProizvod2(Kolekcija<Proizvod*> proizvodi)
+{
+	int vel = proizvodi.GetTrenutno();
+	if (vel <= 0)
+		return nullptr;
+
+	Kolekcija<pair<Proizvod *, int>> temp;
+
+	temp.AddElement(make_pair(proizvodi[0], 1));
+	for (int i = 1; i < vel; i++)
+		for (int i = 0; i < temp.GetTrenutno(); i++)
+			if (proizvodi[i] == temp[i].first)
+				temp[i].second++;
+
+	int lokacija = 0;
+	for (int i = 0; i < temp.GetTrenutno(); i++)
+		if (temp[lokacija].second < temp[i].second)
+			lokacija = i;
+
+	return temp[lokacija].first;
+}
+
 //Implementirati nasljeđivanje
 class Odjeca : public Proizvod
 {
