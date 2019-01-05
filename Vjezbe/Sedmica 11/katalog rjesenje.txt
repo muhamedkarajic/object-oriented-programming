@@ -210,12 +210,20 @@ Proizvod* NajveciProizvod2(Kolekcija<Proizvod*> proizvodi)
 	Kolekcija<pair<Proizvod *, int>> temp;
 
 	temp.AddElement(make_pair(proizvodi[0], 1));
+	bool pronadjen;
 	for (int i = 1; i < vel; i++)
+	{
+		pronadjen = false;
 		for (int i = 0; i < temp.GetTrenutno(); i++)
 			if (proizvodi[i] == temp[i].first)
+			{
 				temp[i].second++;
-			else
-				temp.AddElement(make_pair(proizvodi[0], 1));
+				pronadjen = true;
+				break;
+			}
+		if(!pronadjen)
+			temp.AddElement(make_pair(proizvodi[0], 1));
+	}
 
 	int lokacija = 0;
 	for (int i = 0; i < temp.GetTrenutno(); i++)
