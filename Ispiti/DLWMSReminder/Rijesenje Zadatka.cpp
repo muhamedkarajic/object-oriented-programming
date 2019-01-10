@@ -4,6 +4,7 @@
 #include<exception>
 #include<regex>
 #include<thread>
+#include<mutex>
 #include<future>
 using namespace std;
 
@@ -233,6 +234,18 @@ public:
 		return _datumOdrzavanja.Dani() - _notificirajPrije;
 	}
 
+	bool DaLiTrebaNotificirati(const Datum& datum)
+	{
+		int DO = _datumOdrzavanja.Dani();
+		int OD = DO - _notificirajPrije;
+
+		if (_rekurzivnaNotifikacija && OD <= datum.Dani() && DO > datum.Dani())
+			return true;
+		else if (OD == datum.Dani())
+			return true;
+		return false;
+	}
+
 	/*void operator=(const Dogadjaj& dogadjaj) {
 		delete[] _naziv;
 		delete[] _obaveze;
@@ -362,6 +375,8 @@ public:
 	}
 };
 
+mutex guard;
+
 class DLWMSReminder
 {
 	vector<Student> _reminiderList;
@@ -388,23 +403,27 @@ public:
 		int brojac = 0;
 		for (int i = 0; i < _reminiderList.size(); i++)
 			for (int j = 0; j < _reminiderList[i].GetDogadjaji().size(); j++)
-				if (_reminiderList[i].GetDogadjaji()[j].DatumNotificiranja() == datum.Dani())
+				if (_reminiderList[i].GetDogadjaji()[j].DaLiTrebaNotificirati(datum))
 				{
+					guard.lock();
 					cout << crt;
 
 					cout << "Postovani " << _reminiderList[i].GetImePrezime() << endl;
 					cout << "Dogadjaj " << _reminiderList[i].GetDogadjaji()[j].GetNaziv() << " je zakazan za "
 						<< _reminiderList[i].GetDogadjaji()[j].GetNotificirajPrije()
 						<< " dana, a do sada ste obavili " << _reminiderList[i].GetDogadjaji()[j].ObavezeProcenat()
-						<< " obaveza vezanih za ovaj dogadjaj." << endl;
+						<< "% obaveza vezanih za ovaj dogadjaj." << endl;
 					cout << "Neispunjene obaveze su : " << endl;
+					guard.unlock();
+					brojac++;
 
 					int br = 1;
 					for (int k = 0; k < _reminiderList[i].GetDogadjaji()[j].GetObaveze()->GetTrenutno(); k++)
 						if (!_reminiderList[i].GetDogadjaji()[j].GetObaveze()->GetElement2(k))
 						{
+							guard.lock();
 							cout << br++ << ". " << _reminiderList[i].GetDogadjaji()[j].GetObaveze()->GetElement1(k) << endl;
-							brojac++;
+							guard.unlock();
 						}
 				}
 		return brojac;
@@ -516,8 +535,8 @@ void main() {
 
 #pragma region Dogadjaj
 
-	Dogadjaj ispitPRIII(datumIspitaPRIII, "Ispit iz PRIII", 2, true),
-			 ispitBPII(datumIspitBPII, "Ispit iz BPII", 7, true);
+	Dogadjaj ispitPRIII(datumIspitaPRIII, "Ispit iz PRIII", 2, false),
+			 ispitBPII(datumIspitBPII, "Ispit iz BPII", 7, false);
 	/*po vlasitom izboru definisati listu zabranjenih rijeci koje ce onemoguciti dodavanje odredjene obaveze. 
 	Prilikom provjere koristiti regex*/
 	if (ispitPRIII.AddObavezu("Preraditi pdf materijale"))cout << "Obaveza dodana!" << endl;
@@ -589,8 +608,8 @@ void main() {
 	//funkcija vraca broj poslatih podsjetnika/notifikacija
 	poslato = reminder.PosaljiNotifikacije(danas);
 	cout << "Za " << danas << " poslato ukupno " << poslato << " podsjetnika!" << endl;
-	poslato = reminder.PosaljiNotifikacije(sutra);
-	cout << "Za " << sutra << " poslato ukupno " << poslato << " podsjetnika!" << endl;
+	//poslato = reminder.PosaljiNotifikacije(sutra);
+	//cout << "Za " << sutra << " poslato ukupno " << poslato << " podsjetnika!" << endl;
 
 #pragma endregion
 
