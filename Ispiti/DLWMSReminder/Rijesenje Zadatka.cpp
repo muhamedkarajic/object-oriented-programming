@@ -2,6 +2,9 @@
 #include<string>
 #include<vector>
 #include<exception>
+#include<regex>
+#include<thread>
+#include<future>
 using namespace std;
 
 const char* crt = "\n-----------------------------\n";
@@ -267,6 +270,10 @@ public:
 		if (_obaveze == nullptr)
 			_obaveze = new Kolekcija<string, bool>;
 
+		regex izraz("izmjeniti|ilegalno|ubiti|mrziti|rat");
+		if (regex_search(obaveza, izraz))
+			return false;
+
 		return _obaveze->AddElement(obaveza, false);
 	}
 
@@ -359,12 +366,13 @@ class DLWMSReminder
 {
 	vector<Student> _reminiderList;
 public:
+
 	/*metodi PosaljiNotifikacije se salje trenutni datum na osnovu cega ona pretrazuje sve studente koje
 	treba podsjetiti/notoficirati o dogadjajima koji se priblizavaju.
 	Koristeci multithread-ing, svim studentima se salju notifikacije sa sljedecim sadrzajem:
 	-------------------------------------------------------------------------
 	Postovani Jasmin Azemovic,
-	Dogadjaj Ispit iz PRIII je zakazan za 3 dana, a do sada ste obavili 56% obaveza vezanih za ovaj dogadjaj. 
+	Dogadjaj Ispit iz PRIII je zakazan za 3 dana, a do sada ste obavili 56% obaveza vezanih za ovaj dogadjaj.
 	Neispunjene obaveze su:
 	1.Preraditi ispitne zadatke
 	2.Samostalno vjezbati
@@ -375,8 +383,7 @@ public:
 	da zele da budu podsjecani ponovo/rekurzivno najmanje 2 dana prije samog dogadjaja (podaci se odnose na konkretan
 	dogadjaj: Ispit iz PRIII)*/
 
-	//funkcija vraca broj poslatih podsjetnika/notifikacija
-	int PosaljiNotifikacije(const Datum &datum)
+	int IspisNotifikacija(const Datum &datum)
 	{
 		int brojac = 0;
 		for (int i = 0; i < _reminiderList.size(); i++)
@@ -386,10 +393,10 @@ public:
 					cout << crt;
 
 					cout << "Postovani " << _reminiderList[i].GetImePrezime() << endl;
-					cout << "Dogadjaj " << _reminiderList[i].GetDogadjaji()[j].GetNaziv() << " je zakazan za " 
-						 << _reminiderList[i].GetDogadjaji()[j].GetNotificirajPrije()
-						 << " dana, a do sada ste obavili " << _reminiderList[i].GetDogadjaji()[j].ObavezeProcenat()
-						 << " obaveza vezanih za ovaj dogadjaj." << endl;
+					cout << "Dogadjaj " << _reminiderList[i].GetDogadjaji()[j].GetNaziv() << " je zakazan za "
+						<< _reminiderList[i].GetDogadjaji()[j].GetNotificirajPrije()
+						<< " dana, a do sada ste obavili " << _reminiderList[i].GetDogadjaji()[j].ObavezeProcenat()
+						<< " obaveza vezanih za ovaj dogadjaj." << endl;
 					cout << "Neispunjene obaveze su : " << endl;
 
 					int br = 1;
@@ -401,6 +408,14 @@ public:
 						}
 				}
 		return brojac;
+	}
+
+	
+	//funkcija vraca broj poslatih podsjetnika/notifikacija koristenjem threada
+	int PosaljiNotifikacije(const Datum &datum)
+	{
+		future<int> threadSaPovratnom = async(&DLWMSReminder::IspisNotifikacija, this, datum);
+		return threadSaPovratnom.get();
 	}
 
 
@@ -515,6 +530,8 @@ void main() {
 	if (ispitBPII.AddObavezu("Preraditi knjigu SQL za 24 h"))cout << "Obaveza dodana!" << endl;
 	if (ispitBPII.AddObavezu("Pregledati video materijale"))cout << "Obaveza dodana!" << endl;
 	if (ispitBPII.AddObavezu("Napraviti bazu za konkretnu aplikaciju"))cout << "Obaveza dodana!" << endl;
+	if (!ispitBPII.AddObavezu("Treba izmjeniti sadrzaj ocjena."))cout << "Obaveza nije dodana zbog regexa!" << endl;
+	if (!ispitBPII.AddObavezu("Uraditi ilegalno nesto."))cout << "Obaveza nije dodana zbog regexa!" << endl;
 
 	Student jasmin(150051, "Jasmin Azemovic"), adel(160061, "Adel Handzic");
 
