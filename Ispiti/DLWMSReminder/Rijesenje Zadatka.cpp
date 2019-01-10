@@ -398,7 +398,7 @@ public:
 	da zele da budu podsjecani ponovo/rekurzivno najmanje 2 dana prije samog dogadjaja (podaci se odnose na konkretan
 	dogadjaj: Ispit iz PRIII)*/
 
-	int IspisNotifikacija(const Datum &datum)
+	int IspisNotifikacija(const Datum& datum)
 	{
 		int brojac = 0;
 		for (int i = 0; i < _reminiderList.size(); i++)
@@ -535,8 +535,8 @@ void main() {
 
 #pragma region Dogadjaj
 
-	Dogadjaj ispitPRIII(datumIspitaPRIII, "Ispit iz PRIII", 2, false),
-			 ispitBPII(datumIspitBPII, "Ispit iz BPII", 7, false);
+	Dogadjaj ispitPRIII(datumIspitaPRIII, "Ispit iz PRIII", 2, true),
+			 ispitBPII(datumIspitBPII, "Ispit iz BPII", 7, true);
 	/*po vlasitom izboru definisati listu zabranjenih rijeci koje ce onemoguciti dodavanje odredjene obaveze. 
 	Prilikom provjere koristiti regex*/
 	if (ispitPRIII.AddObavezu("Preraditi pdf materijale"))cout << "Obaveza dodana!" << endl;
@@ -607,9 +607,9 @@ void main() {
 	int poslato = 0;
 	//funkcija vraca broj poslatih podsjetnika/notifikacija
 	poslato = reminder.PosaljiNotifikacije(danas);
-	cout << "Za " << danas << " poslato ukupno " << poslato << " podsjetnika!" << endl;
-	//poslato = reminder.PosaljiNotifikacije(sutra);
-	//cout << "Za " << sutra << " poslato ukupno " << poslato << " podsjetnika!" << endl;
+	cout << "\n>>>>>>>>>>>>>>>>>> Za " << danas << " poslato ukupno " << poslato << " podsjetnika!" << endl;
+	poslato = reminder.PosaljiNotifikacije(sutra);
+	cout << ">>>>>>>>>>>>>>>>>> Za " << sutra << " poslato ukupno " << poslato << " podsjetnika!" << endl;
 
 #pragma endregion
 
