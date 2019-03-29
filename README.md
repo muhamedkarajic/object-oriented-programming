@@ -4,8 +4,8 @@ Object-oriented programming (OOP)
 
 
 ## Curriculum
-*Classes and Objects 
-*Constructor and Destructor,
+* Classes and Objects 
+* Constructor and Destructor,
 *Constructor Copy,
 *Operators,
 *Abstraction, 
