@@ -2,7 +2,7 @@
 ## Programming III
 Exercises I have done on Programming III including abstraction, encapsulation, inheritance amd polymorphism.
 
-## Curriculum
+## Curriculum:
 1. OOP priorities. class, objects
 2. Specific class members
 3. General functions and classes
