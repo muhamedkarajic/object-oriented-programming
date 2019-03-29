@@ -1,14 +1,16 @@
-# Programiranje-III
-Object-oriented programming (OOP)
 
-
+## Programming III
+Exercises I have done on Programming III including abstraction, encapsulation, inheritance amd polymorphism.
 
 ## Curriculum
-* Classes and Objects 
-* Constructor and Destructor,
-* Constructor Copy,
-* Operators,
-* Abstraction, 
-* Encapsulation, 
-* Inheritance, 
-* Polymorphism.
+1. OOP priorities. class, objects
+2. Specific class members
+3. General functions and classes
+4. Associations, composite objects, references
+5. Exclusion of class
+6. With the inherent inheritance of class
+7. Abstract class
+8. Polimorfizam
+9. Exceptions (exceptions)
+10. Standard C ++ library
+11. Threads and Processes
