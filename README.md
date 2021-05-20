@@ -1,5 +1,5 @@
 
-## Programming III
+## Object-oriented Programming
 Exercises I have done on Programming III including abstraction, encapsulation, inheritance and polymorphism.
 
 ## Curriculum:
